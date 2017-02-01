@@ -1,0 +1,27 @@
+{
+  "name": "jsharmony-validate",
+  "version": "1.0.1",
+  "description": "Validation function for jsHarmony",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apHarmony/jsharmony-validate"
+  },
+  "keywords": [
+    "jsHarmony",
+    "Validation",
+    "JavaScript"
+  ],
+  "author": "apHarmony <contact@apharmony.com> (http://www.apharmony.com/)",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/apHarmony/jsharmony-validate/issues"
+  },
+  "homepage": "https://github.com/apHarmony/jsharmony-validate",
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}
