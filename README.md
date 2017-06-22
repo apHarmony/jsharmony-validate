@@ -21,4 +21,4 @@ if (!_.isEmpty(verrors)) //Handle Validation Error
 
 ## Release History
 
-* 1.0.2 Initial release
+* 1.0.0 Initial release

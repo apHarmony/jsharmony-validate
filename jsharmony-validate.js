@@ -20,7 +20,6 @@ along with this package.  If not, see <http://www.gnu.org/licenses/>.
 exports = module.exports = {};
 
 function XValidate() {
-  this._this = this;
   this.Validators = new Array();
   this.Errors = new Array();
   this.FocusOnError = true;
@@ -104,7 +103,7 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles) {
     }*/
 		if (!HasAccess(v.Access, perms)) continue;
     eval('var val = ' + v.Field);
-    if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && HasAccess("BIUD", perms)) {
+    if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && !('DEV' in roles) && HasAccess("BIUD", perms)) {
       var has_role_access = false;
       for (role in v.Roles) {
         if (role in roles) {
@@ -156,7 +155,8 @@ XValidate._v_MaxLength = function (_max) {
 
 XValidate._v_MinLength = function (_min) {
   return (new Function('_caption', '_val', '\
-    if(!_val) return "";\    if(_val=="") return "";\
+    if(!_val) return "";\
+    if(_val=="") return "";\
     if(_val.length < ' + _min + ') return _caption+" is too short (minimum ' + _min + ' characters).";\
     return "";'));
 }
@@ -178,7 +178,9 @@ XValidate._v_Required = function (_null) {
 XValidate._v_IsNumeric = function (_nonneg) {
   if (typeof (_nonneg) === 'undefined') _nonneg = false;
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    if((typeof _val === "string") || (_val instanceof String)) _val = _val.replace(/^0*/, "");\    if(!_val) return "";\
+	  if(!_val) return "";\
+    if((typeof _val === "string") || (_val instanceof String)) _val = _val.replace(/^0*/, "");\
+    if(!_val) return "";\
 		if(String(parseInt(_val)) != _val) return _caption+" must be a whole number.";\
 		' + (_nonneg ? 'if(parseInt(_val) < 0) return _caption+" must be a positive number.";' : '') + '\
     return "";'));
@@ -188,7 +190,9 @@ XValidate._v_IsDecimal = function (_maxplaces) {
   if (typeof (_maxplaces) === 'undefined') _maxplaces = 0;
   var places_qty = ((_maxplaces > 0) ? '{1,' + _maxplaces + '}' : '+');
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    if(_val == null) return "";\    if(_val == "") return "";\
+	  if(!_val) return "";\
+    if(_val == null) return "";\
+    if(_val == "") return "";\
 		var dec = String(_val).match(/^-?[0-9]*.?[0-9]' + places_qty + '$/);\
 		if(dec === null){ \
       if(' + _maxplaces + ' == 0) return _caption + " must be a valid decimal number.";\
@@ -231,7 +235,9 @@ XValidate._v_IsEmail = function () {
 
 XValidate._v_IsSSN = function () {
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    var rslt = _val;\    //var rslt = String(_val).replace(/-/g,"");\
+	  if(!_val) return "";\
+    var rslt = _val;\
+    //var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 999-99-9999";\
     return "";'));
 }
@@ -263,7 +269,9 @@ XValidate._v_MinDOB = function (_minyear) {
   return (new Function('_caption', '_val', '\
     if (!_val) return "";\
     var rslt = Date.parse(_val);\
-    if (isNaN(rslt) == false) {\      rslt = new Date(rslt);\      var minbday = new Date(rslt.getFullYear()+' + _minyear + ',rslt.getMonth(),rslt.getDate());\
+    if (isNaN(rslt) == false) {\
+      rslt = new Date(rslt);\
+      var minbday = new Date(rslt.getFullYear()+' + _minyear + ',rslt.getMonth(),rslt.getDate());\
       if (minbday > (new Date())) return _caption+" must be at least ' + _minyear + ' years old.";\
     }\
     return "";'));
@@ -277,21 +285,27 @@ XValidate._v_IsPhone = function () {
 
 XValidate._v_IsTime = function () {
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    if(_val instanceof Date) return "";\    var d = moment(_val, "hh:mm a");\
+	  if(!_val) return "";\
+    if(_val instanceof Date) return "";\
+    var d = moment(_val, "hh:mm a");\
     if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";\
     return "";'));
 }
 
 XValidate._v_Luhn = function () {
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    var luhnChk = function (a) { return function (c) { for (var l = c.length, b = 1, s = 0, v; l;) v = parseInt(c.charAt(--l), 10), s += (b ^= 1)?a[v]:v; return s && 0 === s % 10 } }([0, 2, 4, 6, 8, 1, 3, 5, 7, 9]); \    if(luhnChk(_val.toString())) return "";\
+	  if(!_val) return "";\
+    var luhnChk = function (a) { return function (c) { for (var l = c.length, b = 1, s = 0, v; l;) v = parseInt(c.charAt(--l), 10), s += (b ^= 1)?a[v]:v; return s && 0 === s % 10 } }([0, 2, 4, 6, 8, 1, 3, 5, 7, 9]); \
+    if(luhnChk(_val.toString())) return "";\
 		return _caption+" must be a valid credit card number.";'));
 }
 
 XValidate._v_InArray = function (_arr) {
   if (typeof (_arr) === 'undefined') _arr = [];
   return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\    var _arr = ' + JSON.stringify(_arr) + ';\    for(var i=0;i<_arr.length;i++){ if(_arr[i]==_val) return ""; }\
+	  if(!_val) return "";\
+    var _arr = ' + JSON.stringify(_arr) + ';\
+    for(var i=0;i<_arr.length;i++){ if(_arr[i]==_val) return ""; }\
 		return _caption+" must be one of the following values: "+_arr.join(",");'));
 }
 
