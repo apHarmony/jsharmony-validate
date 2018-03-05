@@ -25,11 +25,11 @@ function XValidate() {
   this.FocusOnError = true;
   this.ErrorClass = 'xinputerror';
 }
-XValidate.prototype.AddValidator = function (_field, _caption, _access, _funcs, _roles) {
-  this.Validators.push(new XValidator(_field, _caption, _access, _funcs, undefined, _roles));
+XValidate.prototype.AddValidator = function (_field, _caption, _actions, _funcs, _roles) {
+  this.Validators.push(new XValidator(_field, _caption, _actions, _funcs, undefined, _roles));
 };
-XValidate.prototype.AddControlValidator = function (_control, _field, _caption, _access, _funcs) {
-  this.Validators.push(new XValidator(_field, _caption, _access, _funcs, _control));
+XValidate.prototype.AddControlValidator = function (_control, _field, _caption, _actions, _funcs) {
+  this.Validators.push(new XValidator(_field, _caption, _actions, _funcs, _control));
 };
 XValidate.prototype.ResetValidation = function (field, parentobj) {
   if (!parentobj) parentobj = $(document);
@@ -91,17 +91,7 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles) {
     var ignorefield = false;
     for (var j = 0; j < ignore.length; j++) { if (ignore[j] == v.Field) { ignorefield = true; break; } }
     if (ignorefield) continue;
-    /*
-    if (accessfields && v.Field) {
-      //Check if field is in fields
-      var has_access = false;
-      for (var k = 0; k < accessfields.length; k++) {
-        var accessfield = accessfields[k];
-        if (('_obj.' + accessfield) == v.Field) { has_access = true; }
-      }
-      if (!has_access) continue;
-    }*/
-		if (!HasAccess(v.Access, perms)) continue;
+		if (!HasAccess(v.Actions, perms)) continue;
     eval('var val = ' + v.Field);
     if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && !('DEV' in roles) && HasAccess("BIUD", perms)) {
       var has_role_access = false;
@@ -133,10 +123,10 @@ function HasAccess(access, perm) {
   return false;
 }
 
-function XValidator(_field, _caption, _access, _funcs, _control, _roles) {
+function XValidator(_field, _caption, _actions, _funcs, _control, _roles) {
   this.Field = _field;
   this.Caption = _caption;
-  this.Access = _access;
+  this.Actions = _actions;
   this.Funcs = _funcs;
   this.Control = _control || '';
   this.Roles = _roles;
@@ -148,6 +138,7 @@ XValidate.Vex = function (validator, val) {
 
 XValidate._v_MaxLength = function (_max) {
   return (new Function('_caption', '_val', '\
+    if(' + _max + ' < 0) return "";\
     if(!_val) return "";\
     if(_val.length > ' + _max + ') return _caption+" is too long (limit ' + _max + ' characters).";\
     return "";'));
@@ -201,6 +192,30 @@ XValidate._v_IsDecimal = function (_maxplaces) {
     return "";'));
 }
 
+XValidate._v_IsFloat = function () {
+  return (new Function('_caption', '_val', '\
+	  if(!_val) return "";\
+    if(_val == null) return "";\
+    if(_val == "") return "";\
+    if(isNaN(parseFloat(_val))) return _caption + " must be a valid number.";\
+    return "";'));
+}
+
+XValidate._v_IsBinary = function (_maxlength) {
+  return (new Function('_caption', '_val', '\
+	  if(!_val) return "";\
+    if(_val == null) return "";\
+    if(_val == "") return "";\
+    if(_val.toString().substr(0,2).toLowerCase() == "0x"){ \
+      var hexstr = _val.substr(2); \
+      if(!(/^[0-9A-Fa-f]*$/.test(hexstr))) return _caption + " must be a valid hex string."; \
+      if((' + _maxlength + ' >= 0) && (hexstr.length > ' + _maxlength * 2 + ')) return _caption+" is too long (limit ' + _maxlength + ' bytes).";\
+      return "";\
+    } \
+    if((' + _maxlength + ' >= 0) && (_val.length > ' + _maxlength + ')) return _caption+" is too long (limit ' + _maxlength + ' bytes).";\
+    return "";'));
+}
+
 XValidate._v_MaxValue = function (_max) {
   return (new Function('_caption', '_val', '\
     if(!_val) return "";\
@@ -239,6 +254,15 @@ XValidate._v_IsSSN = function () {
     var rslt = _val;\
     //var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 999-99-9999";\
+    return "";'));
+}
+
+XValidate._v_IsEIN = function () {
+  return (new Function('_caption', '_val', '\
+	  if(!_val) return "";\
+    var rslt = _val;\
+    //var rslt = String(_val).replace(/-/g,"");\
+    if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 99-9999999";\
     return "";'));
 }
 
