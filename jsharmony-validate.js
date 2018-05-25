@@ -80,7 +80,8 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
   }
   return true;
 }
-XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles) {
+XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, options) {
+  if(!options) options = { ignoreUndefined: false };
   field = field || '';
   if (typeof ignore == 'undefined') ignore = [];
   var rslt = {};
@@ -93,6 +94,7 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles) {
     if (ignorefield) continue;
 		if (!HasAccess(v.Actions, perms)) continue;
     eval('var val = ' + v.Field);
+    if(options.ignoreUndefined && (typeof val === 'undefined')) continue;
     if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && !('DEV' in roles) && HasAccess("BIUD", perms)) {
       var has_role_access = false;
       for (role in v.Roles) {
