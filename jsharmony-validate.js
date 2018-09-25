@@ -19,12 +19,14 @@ along with this package.  If not, see <http://www.gnu.org/licenses/>.
 
 exports = module.exports = {};
 
-function XValidate() {
+function XValidate(jsh) {
   this.Validators = new Array();
   this.Errors = new Array();
   this.FocusOnError = true;
   this.ErrorClass = 'xinputerror';
+  this.jsh = jsh||XValidate.jsh;
 }
+XValidate.jsh = undefined;
 XValidate.prototype.AddValidator = function (_field, _caption, _actions, _funcs, _roles) {
   this.Validators.push(new XValidator(_field, _caption, _actions, _funcs, undefined, _roles));
 };
@@ -32,7 +34,7 @@ XValidate.prototype.AddControlValidator = function (_control, _field, _caption, 
   this.Validators.push(new XValidator(_field, _caption, _actions, _funcs, _control));
 };
 XValidate.prototype.ResetValidation = function (field, parentobj) {
-  if (!parentobj) parentobj = $(document);
+  if (!parentobj) parentobj = this.jsh.root;
   this.Errors.length = 0;
   field = field || '';
   for (var i = 0; i < this.Validators.length; i++) {
@@ -45,12 +47,13 @@ XValidate.prototype.ResetValidation = function (field, parentobj) {
   }
 }
 XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) {
+  var _this = this;
   field = field || '';
   var firstErrorControl = '';
-  if (!parentobj) parentobj = $(document);
+  if (!parentobj) parentobj = _this.jsh.root;
   this.ResetValidation(field, parentobj);
   var verrors = this.Validate(perms, _obj, field);
-  if (!_.isEmpty(verrors)) {
+  if (!isEmpty(verrors)) {
     var errstr = 'The following errors have occurred:\n\n';
     for (var ctrl in verrors) {
       errstr += verrors[ctrl].join('\n') + '\n';
@@ -65,14 +68,14 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
     }
     errstr = errstr.substr(0, errstr.length - 1);
     
-    XExt.Alert(errstr, function () {
+    _this.jsh.XExt.Alert(errstr, function () {
       if (firstErrorControl != '') {
-        window.ent_ignorefocusHandler = true;
+        _this.jsh.ignorefocusHandler = true;
         window.setTimeout(function () {
-          $(document.activeElement).blur();
+          _this.jsh.$(document.activeElement).blur();
           parentobj.find(firstErrorControl).focus();
           parentobj.find(firstErrorControl).select();
-          window.setTimeout(function () { window.ent_ignorefocusHandler = false; }, 1);
+          window.setTimeout(function () { _this.jsh.ignorefocusHandler = false; }, 1);
         }, 1);
       }
     });
@@ -123,6 +126,11 @@ function HasAccess(access, perm) {
     if (access.indexOf(perm[i]) > -1) return true;
   }
   return false;
+}
+function isEmpty(val){
+  if(!val) return true;
+  for(var key in val) return false;
+  return true;
 }
 
 function XValidator(_field, _caption, _actions, _funcs, _control, _roles) {
