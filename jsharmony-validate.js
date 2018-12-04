@@ -17,6 +17,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this package.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var moment = require('moment');
+
 exports = module.exports = {};
 
 function XValidate(jsh) {
@@ -318,12 +320,13 @@ XValidate._v_IsPhone = function () {
 }
 
 XValidate._v_IsTime = function () {
-  return (new Function('_caption', '_val', '\
-	  if(!_val) return "";\
-    if(_val instanceof Date) return "";\
-    var d = moment(_val, "hh:mm a");\
-    if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";\
-    return "";'));
+  return function(_caption, _val){
+    if(!_val) return "";
+    if(_val instanceof Date) return "";
+    var d = moment(_val, "hh:mm a");
+    if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";
+    return "";
+  };
 }
 
 XValidate._v_Luhn = function () {
