@@ -189,19 +189,24 @@ XValidate._v_IsNumeric = function (_nonneg) {
     return "";'));
 }
 
-XValidate._v_IsDecimal = function (_maxplaces) {
+XValidate._v_IsDecimal = function (_maxplaces, _comma) {
   if (typeof (_maxplaces) === 'undefined') _maxplaces = 0;
   var places_qty = ((_maxplaces > 0) ? '{1,' + _maxplaces + '}' : '+');
   return (new Function('_caption', '_val', '\
 	  if(!_val) return "";\
     if(_val == null) return "";\
     if(_val == "") return "";\
+    '+(_comma ? '_val = String(_val).replace(/,/g, "");' : '')+'\
 		var dec = String(_val).match(/^-?[0-9]*.?[0-9]' + places_qty + '$/);\
 		if(dec === null){ \
       if(' + _maxplaces + ' == 0) return _caption + " must be a valid decimal number.";\
       else return _caption + " must be a number with max ' + _maxplaces + ' places after the decimal point.";\
     } \
     return "";'));
+}
+
+XValidate._v_IsDecimalComma = function (_maxplaces) {
+  return XValidate._v_IsDecimal(_maxplaces, true);
 }
 
 XValidate._v_IsFloat = function () {
