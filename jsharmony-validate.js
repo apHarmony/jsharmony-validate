@@ -55,7 +55,7 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
   if (!parentobj) parentobj = _this.jsh.root;
   this.ResetValidation(field, parentobj);
   var verrors = this.Validate(perms, _obj, field);
-  if (!isEmpty(verrors)) {
+  if (verrors) {
     var errstr = 'The following errors have occurred:\n\n';
     for (var ctrl in verrors) {
       errstr += verrors[ctrl].join('\n') + '\n';
@@ -119,7 +119,8 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, opti
       }
     }
   }
-  return rslt;
+  if(isEmpty(rslt)) return null;
+  else return rslt;
 }
 function HasAccess(access, perm) {
   if (access === undefined) return false;
@@ -152,14 +153,14 @@ XValidate._v_MaxLength = function (_max) {
   return (new Function('_caption', '_val', '\
     if(' + _max + ' < 0) return "";\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    if(_val.length > ' + _max + ') return _caption+" is too long (limit ' + _max + ' characters).";\
+    if(_val.toString().length > ' + _max + ') return _caption+" is too long (limit ' + _max + ' characters).";\
     return "";'));
 }
 
 XValidate._v_MinLength = function (_min) {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    if(_val.length < ' + _min + ') return _caption+" is too short (minimum ' + _min + ' characters).";\
+    if(_val.toString().length < ' + _min + ') return _caption+" is too short (minimum ' + _min + ' characters).";\
     return "";'));
 }
 
@@ -236,7 +237,7 @@ XValidate._v_MaxValue = function (_max) {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
     var fval = parseFloat(_val);\
-    if(isNaN(fval)) return _caption+" must be a valid number.";\
+    if(isNaN(fval)) return "";\
     if(fval > ' + _max + ') return _caption+" must be less than or equal to ' + _max + '.";\
     return "";'));
 }
@@ -245,7 +246,7 @@ XValidate._v_MinValue = function (_min) {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
     var fval = parseFloat(_val);\
-    if(isNaN(fval)) return _caption+" must be a valid number.";\
+    if(isNaN(fval)) return "";\
     if(fval < ' + _min + ') return _caption+" must be greater than or equal to ' + _min + '.";\
     return "";'));
 }
@@ -267,7 +268,7 @@ XValidate._v_IsEmail = function () {
 XValidate._v_IsSSN = function () {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    rslt = String(_val).replace(/-/g,"");\
+    var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 999-99-9999";\
     return "";'));
 }
@@ -275,7 +276,7 @@ XValidate._v_IsSSN = function () {
 XValidate._v_IsEIN = function () {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    rslt = String(_val).replace(/-/g,"");\
+    var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 99-9999999";\
     return "";'));
 }
@@ -306,7 +307,7 @@ XValidate._v_MinAge = function (_minage) {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
     var rslt = Date.parse(_val);\
-    if(isNaN(rslt)) return _caption+" must be a valid date.";\
+    if(isNaN(rslt)) return "";\
     var curdt = new Date();\
     var minbday = new Date(curdt.getFullYear()-' + _minage + ',curdt.getMonth(),curdt.getDate());\
     if (rslt > minbday) return _caption+" must be at least ' + _minage + ' years old.";\
