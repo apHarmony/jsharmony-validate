@@ -186,8 +186,8 @@ XValidate._v_IsNumeric = function (_nonneg) {
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
     if((typeof _val === "string") || (_val instanceof String)) _val = _val.replace(/^0*/, "");\
     if(!_val) return "";\
-    if(String(parseInt(_val)) != _val) return _caption+" must be a whole number.";\
-    ' + (_nonneg ? 'if(parseInt(_val) < 0) return _caption+" must be a positive number.";' : '') + '\
+    if(String(parseInt(_val)) != _val) return _caption+" must be a whole number (with no letters or symbols).";\
+    ' + (_nonneg ? 'if(parseInt(_val) < 0) return _caption+" must be a positive number (with no letters or symbols).";' : '') + '\
     return "";'));
 }
 
@@ -200,8 +200,8 @@ XValidate._v_IsDecimal = function (_maxplaces, _comma) {
     '+(_comma ? '_val = String(_val).replace(/,/g, "");' : '')+'\
     var dec = String(_val).match(/^-?[0-9]*' + places_qty + '$/);\
     if(dec === null){ \
-      if(' + _maxplaces + ' == 0) return _caption + " must be a valid decimal number.";\
-      else return _caption + " must be a number with max ' + _maxplaces + ' places after the decimal point.";\
+      if(' + _maxplaces + ' <= 0) return _caption + " must be a valid decimal number (with no letters or symbols).";\
+      else return _caption + " must be a valid number (with no letters or symbols) having max ' + _maxplaces + ' digits after the decimal point.";\
     } \
     return "";'));
 }
@@ -213,7 +213,7 @@ XValidate._v_IsDecimalComma = function (_maxplaces) {
 XValidate._v_IsFloat = function () {
   return (new Function('_caption', '_val', '\
     if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    if(isNaN(parseFloat(_val))) return _caption + " must be a valid number.";\
+    if(isNaN(parseFloat(_val))) return _caption + " must be a valid number (with no letters or symbols).";\
     return "";'));
 }
 
