@@ -75,8 +75,10 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
         _this.jsh.ignorefocusHandler = true;
         window.setTimeout(function () {
           _this.jsh.$(document.activeElement).blur();
-          parentobj.find(firstErrorControl).focus();
-          parentobj.find(firstErrorControl).select();
+          var newobj = parentobj.find(firstErrorControl);
+          if(newobj.find('.xform_ctrl_subfocus').length) newobj = newobj.find('.xform_ctrl_subfocus').first();
+          newobj.focus();
+          newobj.select();
           window.setTimeout(function () { _this.jsh.ignorefocusHandler = false; }, 1);
         }, 1);
       }
@@ -350,7 +352,6 @@ XValidate._v_InArray = function (_arr) {
 }
 
 XValidate._v_Equals = function (_cmp_expr, _cmp_caption) {
-  if(typeof(_required)=='undefined') _required = true;
   if(!_cmp_caption) _cmp_caption = '';
   if ((typeof _cmp_expr == 'undefined')||(_cmp_expr===null)||(_cmp_expr==='')) _cmp_expr = "''";
   return (new Function('_caption', '_val', '_obj', '\
