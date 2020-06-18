@@ -361,6 +361,18 @@ XValidate._v_Equals = function (_cmp_expr, _cmp_caption) {
     return _caption+" must equal '+_cmp_caption.toString().replace(/[\\'"]/g, "\\$&")+'";'));
 }
 
+XValidate._v_IsJSON = function() {
+  return function(_caption, _val, _obj) {
+    if((typeof _val == "undefined")||(_val==="")||(_val===null)) return '';
+    try {
+      JSON.parse(_val);
+      return '';
+    } catch (err) {
+      return _caption + ' is not valid JSON: ' + err.message;
+    }
+  };
+}
+
 XValidate.BaseValidators = {};
 for(var key in XValidate) if(key.substr(0,3)=='_v_') XValidate.BaseValidators[key] = 1;
 
