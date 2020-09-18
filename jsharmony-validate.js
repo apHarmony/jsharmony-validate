@@ -283,17 +283,54 @@ XValidate._v_IsEIN = function () {
     return "";'));
 }
 
-XValidate._v_IsDate = function () {
-  return (new Function('_caption', '_val', '\
-    if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";\
-    var rslt = Date.parse(_val);\
-    if(isNaN(rslt)) return _caption+" must be a valid date.";\
-    return "";'));
+XValidate._v_IsDate = function (_format) {
+  return function(_caption, _val){
+    if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";
+    var rslt = Date.parse(_val);
+    if(!isNaN(rslt)) return '';
 
-/*  return XValidate._v_RegEx(
-//    '/^\d\d\d\d\-\d\d\-\d\d$/',
-    '/^\\d{4}-\\d{2}-\\d{2}$/',
-    'be a valid date in format YYYY-MM-DD.');*/
+    _val = _val.toString().trim();
+    if(_format && moment(_val, _format, true).isValid()) return '';
+
+    _val = _val.replace(/,/g,' ');
+    _val = _val.replace(/  /g,' ');
+    var rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss.SSS", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss.SSSZ", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ssZ", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mmZ", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHHZ", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DD", true);
+    if(!rslt.isValid()) rslt = moment(_val, "YY-MM-DD", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MM/DD/YYYY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MM/DD/YY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "M/D/YYYY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "M/D/YY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MMM D YYYY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MMM DD YYYY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MMMM D YYYY", true);
+    if(!rslt.isValid()) rslt = moment(_val, "MMMM DD YYYY", true);
+
+    if(rslt.isValid()) return '';
+    return _caption+" must be a valid date.";
+  };
+}
+
+
+XValidate._v_IsTime = function (_format) {
+  return function(_caption, _val){
+    if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";
+    if(_val instanceof Date) return "";
+    
+    _val = _val.toString().trim();
+    if(_format && moment(_val, _format, true).isValid()) return '';
+    
+    var d = moment(_val, "hh:mm a");
+    if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";
+    return "";
+  };
 }
 
 XValidate._v_MaxAge = function (_maxage) {
@@ -322,16 +359,6 @@ XValidate._v_IsPhone = function () {
   return XValidate._v_RegEx(
     '/^\\d{10,20}$/',
     'be a valid phone number');
-}
-
-XValidate._v_IsTime = function () {
-  return function(_caption, _val){
-    if((typeof _val == "undefined")||(_val==="")||(_val===null)) return "";
-    if(_val instanceof Date) return "";
-    var d = moment(_val, "hh:mm a");
-    if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";
-    return "";
-  };
 }
 
 XValidate._v_Luhn = function () {

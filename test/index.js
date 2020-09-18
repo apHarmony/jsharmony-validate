@@ -15,7 +15,7 @@ describe('Sample',function(){
     v.AddValidator('_obj.TESTNUMBER', 'Test Number', 'B', [XValidate._v_IsNumeric(), XValidate._v_Required()]);
     var testobj = { TESTNUMBER: 'test value' };
     var verrors = v.Validate('BIUD', testobj);
-    assert(verrors[''][0]=='Test Number must be a whole number.','Failure');
+    assert(verrors[''][0]=='Test Number must be a whole number (with no letters or symbols).','Failure');
     //verrors = { '': [ 'Test Number must be a whole number.' ] }
     var testobj = { TESTNUMBER: 1234 };
     var verrors = v.Validate('BIUD', testobj);
@@ -29,10 +29,10 @@ describe('Sample',function(){
     v.AddValidator('_obj.confirm_password', 'Confirm Password', 'B', [XValidate._v_Equals('_obj.password','Password')]);
     var empty_confirm = { password: 'test value', confirm_password: '' };
     verrors = v.Validate('BIUD', empty_confirm);
-    assert(verrors[''][0]=='Confirm Password must be the same as Password','Failure');
+    assert(verrors[''][0]=='Confirm Password must equal Password','Failure');
     var invalid_confirm = { password: 'test value', confirm_password: 'wrong value' };
     verrors = v.Validate('BIUD', invalid_confirm);
-    assert(verrors[''][0]=='Confirm Password must be the same as Password','Failure');
+    assert(verrors[''][0]=='Confirm Password must equal Password','Failure');
     var valid_confirm = { password: 'test value', confirm_password: 'test value' };
     verrors = v.Validate('BIUD', valid_confirm);
     //verrors = {}
