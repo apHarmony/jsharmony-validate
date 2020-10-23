@@ -39,4 +39,38 @@ describe('Sample',function(){
     assert(isEmpty(verrors),'Success');
     done();
   });
+  it('SSN', function (done) {
+    var v = new XValidate();
+    var verrors;
+    v.AddValidator('_obj.ssn', 'SSN', 'B', [XValidate._v_IsSSN()]);
+    verrors = v.Validate('BIUD', { ssn: '' });
+    assert(isEmpty(verrors),'SSN w/Empty String');
+    verrors = v.Validate('BIUD', { ssn: Buffer.from('') });
+    assert(isEmpty(verrors),'SSN w/Empty Buffer');
+    verrors = v.Validate('BIUD', { ssn: undefined });
+    assert(isEmpty(verrors),'SSN w/undefined value');
+    verrors = v.Validate('BIUD', { ssn: null });
+    assert(isEmpty(verrors),'SSN w/null value');
+    verrors = v.Validate('BIUD', { ssn: '111' });
+    assert(verrors[''][0]=='SSN must be in the format 999-99-9999','Partial SSN');
+    verrors = v.Validate('BIUD', { ssn: '111-11-1111' });
+    assert(isEmpty(verrors),'Full SSN');
+    return done();
+  });
+  it('Required', function (done) {
+    var v = new XValidate();
+    var verrors;
+    v.AddValidator('_obj.field', 'Field', 'B', [XValidate._v_Required()]);
+    verrors = v.Validate('BIUD', { field: '' });
+    assert(verrors[''][0]=='Field is required.','Required w/Empty String');
+    verrors = v.Validate('BIUD', { field: Buffer.from('') });
+    assert(verrors[''][0]=='Field is required.','Required w/Empty Buffer');
+    verrors = v.Validate('BIUD', { field: undefined });
+    assert(verrors[''][0]=='Field is required.','Required w/undefined value');
+    verrors = v.Validate('BIUD', { field: null });
+    assert(verrors[''][0]=='Field is required.','Required w/null value');
+    verrors = v.Validate('BIUD', { field: '111' });
+    assert(isEmpty(verrors),'Required w/Value');
+    return done();
+  });
 });
