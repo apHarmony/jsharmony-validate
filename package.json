@@ -1,6 +1,6 @@
 {
   "name": "jsharmony-validate",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "Validation function for jsHarmony",
   "main": "index.js",
   "scripts": {

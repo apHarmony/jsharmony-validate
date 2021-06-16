@@ -186,7 +186,7 @@ XValidate._v_Required = function (_blank) {
   }
   else {
     return (new Function('_caption', '_val', '\
-      if((typeof _val == "undefined")||(_val==="")||(_val===null)||(_val.toString()=="")) return _caption+" is required.";\
+      if((typeof _val == "undefined")||(_val==="")||(_val===null)||(_val.toString()=="")||(_val===false)) return _caption+" is required.";\
       return "";'));
   }
 }
