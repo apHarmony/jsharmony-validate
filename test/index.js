@@ -2,11 +2,11 @@ var XValidate = require('../index');
 var assert = require('assert');
 
 function isEmpty(obj) {
-    for(var key in obj) {
-        if(obj.hasOwnProperty(key))
-            return false;
-    }
-    return true;
+  for(var key in obj) {
+    if(obj.hasOwnProperty(key))
+      return false;
+  }
+  return true;
 }
 
 describe('Sample',function(){
@@ -17,8 +17,8 @@ describe('Sample',function(){
     var verrors = v.Validate('BIUD', testobj);
     assert(verrors[''][0]=='Test Number must be a whole number (with no letters or symbols).','Failure');
     //verrors = { '': [ 'Test Number must be a whole number.' ] }
-    var testobj = { TESTNUMBER: 1234 };
-    var verrors = v.Validate('BIUD', testobj);
+    testobj = { TESTNUMBER: 1234 };
+    verrors = v.Validate('BIUD', testobj);
     //verrors = {}
     assert(isEmpty(verrors),'Success');
     done();

@@ -28,6 +28,9 @@ function XValidate(jsh) {
   this.ErrorClass = 'xinputerror';
   this.jsh = jsh||XValidate.jsh;
 }
+function $find(obj, sel){
+  return obj.find(sel); // eslint-disable-line es5/no-es6-methods
+}
 XValidate.jsh = undefined;
 XValidate.prototype.AddValidator = function (_field, _caption, _actions, _funcs, _roles) {
   this.Validators.push(new XValidator(_field, _caption, _actions, _funcs, undefined, _roles));
@@ -44,10 +47,10 @@ XValidate.prototype.ResetValidation = function (field, parentobj) {
     if (field && (field != v.Field)) continue;
     
     if ((this.ErrorClass != '') && (v.Selector != '')) {
-      parentobj.find(v.Selector).removeClass(this.ErrorClass);
+      $find(parentobj, v.Selector).removeClass(this.ErrorClass);
     }
   }
-}
+};
 XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) {
   var _this = this;
   field = field || '';
@@ -64,7 +67,7 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
           firstErrorControl = ctrl;
         }
         if (this.ErrorClass != '') {
-          parentobj.find(ctrl).addClass(this.ErrorClass);
+          $find(parentobj, ctrl).addClass(this.ErrorClass);
         }
       }
     }
@@ -75,8 +78,8 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
         _this.jsh.ignorefocusHandler = true;
         window.setTimeout(function () {
           _this.jsh.$(document.activeElement).blur();
-          var newobj = parentobj.find(firstErrorControl);
-          if(newobj.find('.xform_ctrl_subfocus').length) newobj = newobj.find('.xform_ctrl_subfocus').first();
+          var newobj = $find(parentobj, firstErrorControl);
+          if($find(newobj, '.xform_ctrl_subfocus').length) newobj = $find(newobj, '.xform_ctrl_subfocus').first();
           newobj.focus();
           newobj.select();
           window.setTimeout(function () { _this.jsh.ignorefocusHandler = false; }, 1);
@@ -86,7 +89,7 @@ XValidate.prototype.ValidateControls = function (perms, _obj, field, parentobj) 
     return false;
   }
   return true;
-}
+};
 XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, options) {
   if(!options) options = { ignoreUndefined: false };
   field = field || '';
@@ -100,11 +103,12 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, opti
     for (var j = 0; j < ignore.length; j++) { if (ignore[j] == v.Field) { ignorefield = true; break; } }
     if (ignorefield) continue;
     if (!HasAccess(v.Actions, perms)) continue;
-    eval('var val = ' + v.Field);
+    var val = null;
+    eval('val = ' + v.Field);
     if(options.ignoreUndefined && (typeof val === 'undefined')) continue;
-    if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && !('DEV' in roles) && HasAccess("BIUD", perms)) {
+    if ((typeof val === 'undefined') && v.Roles && roles && !('SYSADMIN' in roles) && !('DEV' in roles) && HasAccess('BIUD', perms)) {
       var has_role_access = false;
-      for (role in v.Roles) {
+      for (var role in v.Roles) {
         if (role in roles) {
           var rAccess = v.Roles[role];
           if ((rAccess == '*') || HasAccess(rAccess, perms)) has_role_access = true;
@@ -112,8 +116,8 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, opti
       }
       if (!has_role_access) { continue; }
     }
-    for (var j = 0; j < v.Funcs.length; j++) {
-      var vrslt = v.Funcs[j](v.Caption || v.Field, val, _obj);
+    for (var k = 0; k < v.Funcs.length; k++) {
+      var vrslt = v.Funcs[k](v.Caption || v.Field, val, _obj);
       if (vrslt) {
         this.Errors.push(vrslt);
         if (!(v.Selector in rslt)) rslt[v.Selector] = [];
@@ -123,7 +127,7 @@ XValidate.prototype.Validate = function (perms, _obj, field, ignore, roles, opti
   }
   if(isEmpty(rslt)) return null;
   else return rslt;
-}
+};
 function HasAccess(access, perm) {
   if (access === undefined) return false;
   if (perm == '*') return true;
@@ -154,7 +158,7 @@ XValidate.Vex = function (validator, val) {
 };
 
 XValidate.isBlank = function (_val) {
-  return ((typeof _val == "undefined")||(_val==="")||(_val===null)||(_val.toString()==""));
+  return ((typeof _val == 'undefined')||(_val==='')||(_val===null)||(_val.toString()==''));
 };
 
 
@@ -168,14 +172,14 @@ XValidate._v_MaxLength = function (_max) {
     '+XValidate.returnIfBlank('_val')+'\
     if(_val.toString().length > ' + _max + ') return _caption+" is too long (limit ' + _max + ' characters).";\
     return "";'));
-}
+};
 
 XValidate._v_MinLength = function (_min) {
   return (new Function('_caption', '_val', '\
   '+XValidate.returnIfBlank('_val')+'\
     if(_val.toString().length < ' + _min + ') return _caption+" is too short (minimum ' + _min + ' characters).";\
     return "";'));
-}
+};
 
 XValidate._v_Required = function (_blank) {
   if (_blank) {
@@ -189,7 +193,7 @@ XValidate._v_Required = function (_blank) {
       if((typeof _val == "undefined")||(_val==="")||(_val===null)||(_val.toString()=="")||(_val===false)) return _caption+" is required.";\
       return "";'));
   }
-}
+};
 
 XValidate._v_IsNumeric = function (_nonneg) {
   if (typeof (_nonneg) === 'undefined') _nonneg = false;
@@ -200,7 +204,7 @@ XValidate._v_IsNumeric = function (_nonneg) {
     if(String(parseInt(_val)) != _val) return _caption+" must be a whole number (with no letters or symbols).";\
     ' + (_nonneg ? 'if(parseInt(_val) < 0) return _caption+" must be a positive number (with no letters or symbols).";' : '') + '\
     return "";'));
-}
+};
 
 XValidate._v_IsDecimal = function (_maxplaces, _comma) {
   if (typeof (_maxplaces) === 'undefined') _maxplaces = -1;
@@ -215,18 +219,18 @@ XValidate._v_IsDecimal = function (_maxplaces, _comma) {
       else return _caption + " must be a valid number (with no letters or symbols) having max ' + _maxplaces + ' digits after the decimal point.";\
     } \
     return "";'));
-}
+};
 
 XValidate._v_IsDecimalComma = function (_maxplaces) {
   return XValidate._v_IsDecimal(_maxplaces, true);
-}
+};
 
 XValidate._v_IsFloat = function () {
   return (new Function('_caption', '_val', '\
   '+XValidate.returnIfBlank('_val')+'\
     if(isNaN(parseFloat(_val))) return _caption + " must be a valid number (with no letters or symbols).";\
     return "";'));
-}
+};
 
 XValidate._v_IsBinary = function (_maxlength) {
   if (typeof (_maxlength) === 'undefined') _maxlength = -1;
@@ -242,7 +246,7 @@ XValidate._v_IsBinary = function (_maxlength) {
     if(!(/^[\x00-\x7F]*$/.test(_val))) return _caption + " must be an ASCII string, or hex string starting with 0x."; \
     if((' + _maxlength + ' >= 0) && (_val.length > ' + _maxlength + ')) return _caption+" is too long (limit ' + _maxlength + ' bytes).";\
     return "";'));
-}
+};
 
 XValidate._v_MaxValue = function (_max) {
   return (new Function('_caption', '_val', '\
@@ -251,7 +255,7 @@ XValidate._v_MaxValue = function (_max) {
     if(isNaN(fval)) return "";\
     if(fval > ' + _max + ') return _caption+" must be less than or equal to ' + _max + '.";\
     return "";'));
-}
+};
 
 XValidate._v_MinValue = function (_min) {
   return (new Function('_caption', '_val', '\
@@ -260,7 +264,7 @@ XValidate._v_MinValue = function (_min) {
     if(isNaN(fval)) return "";\
     if(fval < ' + _min + ') return _caption+" must be greater than or equal to ' + _min + '.";\
     return "";'));
-}
+};
 
 XValidate._v_RegEx = function (_re, _msg) {
   return (new Function('_caption', '_val', '\
@@ -268,13 +272,13 @@ XValidate._v_RegEx = function (_re, _msg) {
     var re = ' + _re + '; \
     if(!re.test(_val)) return _caption+" must ' + _msg + '"; \
     return "";'));
-}
+};
 
 XValidate._v_IsEmail = function () {
   return XValidate._v_RegEx(
     '/^(([^<>()[\\]\\\\.,;:\\s@\\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\\"]+)*)|(\\".+\\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$/',
     'be an email address');
-}
+};
 
 XValidate._v_IsSSN = function () {
   return (new Function('_caption', '_val', '\
@@ -282,7 +286,7 @@ XValidate._v_IsSSN = function () {
     var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 999-99-9999";\
     return "";'));
-}
+};
 
 XValidate._v_IsEIN = function () {
   return (new Function('_caption', '_val', '\
@@ -290,11 +294,11 @@ XValidate._v_IsEIN = function () {
     var rslt = String(_val).replace(/-/g,"");\
     if(!rslt.match(/^\\d{9}$/)) return _caption+" must be in the format 99-9999999";\
     return "";'));
-}
+};
 
 XValidate._v_IsDate = function (_format) {
   return function(_caption, _val){
-    if(XValidate.isBlank(_val)) return "";
+    if(XValidate.isBlank(_val)) return '';
     var rslt = Date.parse(_val);
     if(!isNaN(rslt)) return '';
 
@@ -302,45 +306,45 @@ XValidate._v_IsDate = function (_format) {
     if(_format && moment(_val, _format, true).isValid()) return '';
 
     _val = _val.replace(/,/g,' ');
-    _val = _val.replace(/  /g,' ');
-    var rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss.SSS", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ss.SSSZ", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mm:ssZ", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHH:mmZ", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DDTHHZ", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YYYY-MM-DD", true);
-    if(!rslt.isValid()) rslt = moment(_val, "YY-MM-DD", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MM/DD/YYYY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MM/DD/YY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "M/D/YYYY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "M/D/YY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MMM D YYYY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MMM DD YYYY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MMMM D YYYY", true);
-    if(!rslt.isValid()) rslt = moment(_val, "MMMM DD YYYY", true);
+    _val = _val.replace(/ {2}/g,' ');
+    rslt = moment(_val, 'YYYY-MM-DDTHH:mm:ss.SSS', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH:mm:ss', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH:mm', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH:mm:ss.SSSZ', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH:mm:ssZ', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHH:mmZ', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DDTHHZ', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YYYY-MM-DD', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'YY-MM-DD', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MM/DD/YYYY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MM/DD/YY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'M/D/YYYY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'M/D/YY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MMM D YYYY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MMM DD YYYY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MMMM D YYYY', true);
+    if(!rslt.isValid()) rslt = moment(_val, 'MMMM DD YYYY', true);
 
     if(rslt.isValid()) return '';
-    return _caption+" must be a valid date.";
+    return _caption+' must be a valid date.';
   };
-}
+};
 
 
 XValidate._v_IsTime = function (_format) {
   return function(_caption, _val){
-    if(XValidate.isBlank(_val)) return "";
-    if(_val instanceof Date) return "";
+    if(XValidate.isBlank(_val)) return '';
+    if(_val instanceof Date) return '';
     
     _val = _val.toString().trim();
     if(_format && moment(_val, _format, true).isValid()) return '';
     
-    var d = moment(_val, "hh:mm a");
-    if(!d.isValid()) return _caption+" must be a valid time in format HH:MM.";
-    return "";
+    var d = moment(_val, 'hh:mm a');
+    if(!d.isValid()) return _caption+' must be a valid time in format HH:MM.';
+    return '';
   };
-}
+};
 
 XValidate._v_MaxAge = function (_maxage) {
   return (new Function('_caption', '_val', '\
@@ -351,7 +355,7 @@ XValidate._v_MaxAge = function (_maxage) {
     var maxday = new Date(curdt.getFullYear()-' + _maxage + ',curdt.getMonth(),curdt.getDate());\
     if (rslt < maxday) return _caption+" cannot be more than ' + _maxage + ' years old.";\
     return "";'));
-}
+};
 
 XValidate._v_MinAge = function (_minage) {
   return (new Function('_caption', '_val', '\
@@ -362,13 +366,13 @@ XValidate._v_MinAge = function (_minage) {
     var minday = new Date(curdt.getFullYear()-' + _minage + ',curdt.getMonth(),curdt.getDate());\
     if (rslt > minday) return _caption+" must be at least ' + _minage + ' years old.";\
     return "";'));
-}
+};
 
 XValidate._v_IsPhone = function () {
   return XValidate._v_RegEx(
     '/^\\d{10,20}$/',
     'be a valid phone number');
-}
+};
 
 XValidate._v_Luhn = function () {
   return (new Function('_caption', '_val', '\
@@ -376,7 +380,7 @@ XValidate._v_Luhn = function () {
     var luhnChk = function (a) { return function (c) { for (var l = c.length, b = 1, s = 0, v; l;) v = parseInt(c.charAt(--l), 10), s += (b ^= 1)?a[v]:v; return s && 0 === s % 10 } }([0, 2, 4, 6, 8, 1, 3, 5, 7, 9]); \
     if(luhnChk(_val.toString())) return "";\
     return _caption+" must be a valid credit card number.";'));
-}
+};
 
 XValidate._v_InArray = function (_arr) {
   if (typeof (_arr) === 'undefined') _arr = [];
@@ -385,21 +389,21 @@ XValidate._v_InArray = function (_arr) {
     var _arr = ' + JSON.stringify(_arr) + ';\
     for(var i=0;i<_arr.length;i++){ if(_arr[i]==_val) return ""; }\
     return _caption+" must be one of the following values: "+_arr.join(",");'));
-}
+};
 
 XValidate._v_Equals = function (_cmp_expr, _cmp_caption) {
   if(!_cmp_caption) _cmp_caption = '';
   if(XValidate.isBlank(_cmp_expr)) _cmp_expr = "''";
   return (new Function('_caption', '_val', '_obj', '\
-    var _cmp_expr = "'+_cmp_expr.toString().replace(/[\\'"]/g, "\\$&")+'";\
+    var _cmp_expr = "'+_cmp_expr.toString().replace(/[\\'"]/g, '\\$&')+'";\
     eval("var _cmp_val = "+_cmp_expr);\
     if(_cmp_val==_val) return "";\
-    return _caption+" must equal '+_cmp_caption.toString().replace(/[\\'"]/g, "\\$&")+'";'));
-}
+    return _caption+" must equal '+_cmp_caption.toString().replace(/[\\'"]/g, '\\$&')+'";'));
+};
 
 XValidate._v_IsJSON = function() {
   return function(_caption, _val, _obj) {
-    if(XValidate.isBlank(_val)) return "";
+    if(XValidate.isBlank(_val)) return '';
     try {
       JSON.parse(_val);
       return '';
@@ -407,7 +411,7 @@ XValidate._v_IsJSON = function() {
       return _caption + ' is not valid JSON: ' + err.message;
     }
   };
-}
+};
 
 XValidate.BaseValidators = {};
 for(var key in XValidate) if(key.substr(0,3)=='_v_') XValidate.BaseValidators[key] = 1;
