@@ -296,14 +296,19 @@ XValidate._v_IsEIN = function () {
     return "";'));
 };
 
-XValidate._v_IsDate = function (_format) {
+XValidate._v_IsDate = function (_format, _strict) {
   return function(_caption, _val){
     if(XValidate.isBlank(_val)) return '';
-    var rslt = Date.parse(_val);
-    if(!isNaN(rslt)) return '';
+    var rslt;
+
+    if(!_strict){
+      rslt = Date.parse(_val);
+      if(!isNaN(rslt)) return '';
+    }
 
     _val = _val.toString().trim();
     if(_format && moment(_val, _format, true).isValid()) return '';
+    if(_format && _strict) return _caption+' must be a valid date in format '+_format+'.';
 
     _val = _val.replace(/,/g,' ');
     _val = _val.replace(/ {2}/g,' ');
